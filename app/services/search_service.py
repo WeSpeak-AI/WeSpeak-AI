@@ -1,9 +1,13 @@
 import json
+import time
 
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel
 
+from app.logger import get_logger
 from app.services.llm import get_structured_llm
+
+logger = get_logger("wespeak.search")
 
 SYSTEM_PROMPT = """You are an English dictionary. Given a word or phrase, return ONLY a JSON object with these exact fields:
 {
@@ -14,6 +18,11 @@ SYSTEM_PROMPT = """You are an English dictionary. Given a word or phrase, return
 }
 Respond with ONLY the JSON object. No explanation, no markdown, no extra text."""
 
+SEARCH_PROMPT_TEMPLATE = ChatPromptTemplate([
+    ("system", SYSTEM_PROMPT),
+    ("human", "Define this word: {query}")
+])
+
 
 class WordInfo(BaseModel):
     term: str
@@ -23,29 +32,30 @@ class WordInfo(BaseModel):
 
 
 async def search_word(query: str) -> WordInfo:
-    llm = get_structured_llm()
-    structured_llm = llm.with_structured_output(WordInfo)
-
-    messages = [
-        SystemMessage(content=SYSTEM_PROMPT),
-        HumanMessage(content=f"Define this word: {query}"),
-    ]
-
+    logger.info("search request - query=%s", query)
+    start = time.perf_counter()
     try:
-        result = await structured_llm.ainvoke(messages)
+        llm = get_structured_llm()
+        structured_llm = llm.with_structured_output(WordInfo)
+        searchChain = SEARCH_PROMPT_TEMPLATE | structured_llm
+        result = await searchChain.ainvoke({"query": query})
+        logger.info("search completed - query=%s %.1fms", query, (time.perf_counter() - start) * 1000)
         if isinstance(result, WordInfo):
             return result
-        # with_structured_output이 dict를 반환하는 경우 대비
         return WordInfo(**result)
-    except Exception:
-        # 파싱 실패 시 raw LLM으로 재시도
-        raw_llm = get_structured_llm()
-        response = await raw_llm.ainvoke(messages)
-        raw = response.content.strip()
-        # 마크다운 코드블록 제거
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-        data = json.loads(raw)
-        return WordInfo(**data)
+    except Exception as e:
+        logger.warning("search structured output failed, retrying with raw LLM - query=%s error=%s", query, e)
+        try:
+            raw_llm = get_structured_llm()
+            response = await (SEARCH_PROMPT_TEMPLATE | raw_llm).ainvoke({"query": query})
+            raw = response.content.strip()
+            if raw.startswith("```"):
+                raw = raw.split("```")[1]
+                if raw.startswith("json"):
+                    raw = raw[4:]
+            data = json.loads(raw)
+            logger.info("search fallback completed - query=%s %.1fms", query, (time.perf_counter() - start) * 1000)
+            return WordInfo(**data)
+        except Exception as e2:
+            logger.error("search failed - query=%s %.1fms error=%s", query, (time.perf_counter() - start) * 1000, e2, exc_info=True)
+            raise
