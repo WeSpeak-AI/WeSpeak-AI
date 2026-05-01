@@ -7,29 +7,11 @@ services:
     env_file:
       - .env
     environment:
-      # ollama provider 사용 시 컨테이너 간 통신 주소로 덮어쓰기
-      OLLAMA_BASE_URL: http://ollama:11434
-    depends_on:
-      - ollama
+      OLLAMA_BASE_URL: http://host-gateway:11434
+    extra_hosts:
+      - "host-gateway:host-gateway"
     volumes:
-      # Whisper 모델 캐시 — 재시작 시 재다운로드 방지
       - whisper-models:/root/.cache/huggingface
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-    restart: unless-stopped
-
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama-models:/root/.ollama
     deploy:
       resources:
         reservations:
@@ -41,4 +23,3 @@ services:
 
 volumes:
   whisper-models:
-  ollama-models:

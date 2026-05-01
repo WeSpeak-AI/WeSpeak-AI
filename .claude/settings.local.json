@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//mnt/c/Users/user/github/AI/**)",
+      "Read(//mnt/c/Users/user/github/**)"
+    ]
+  }
+}
