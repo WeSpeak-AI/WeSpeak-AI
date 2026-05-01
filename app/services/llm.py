@@ -1,19 +1,34 @@
+from langchain_anthropic import ChatAnthropic
+from langchain_core.language_models import BaseChatModel
 from langchain_ollama import ChatOllama
+
 from app.config import settings
 
 
-def get_chat_llm() -> ChatOllama:
+def get_chat_llm() -> BaseChatModel:
+    if settings.provider == "claude":
+        return ChatAnthropic(
+            model=settings.claude_model,
+            api_key=settings.anthropic_api_key,
+            temperature=settings.temperature_chat,
+        )
     return ChatOllama(
-        model=settings.model,
+        model=settings.ollama_model,
         base_url=settings.ollama_base_url,
         temperature=settings.temperature_chat,
     )
 
 
-def get_structured_llm() -> ChatOllama:
-    """JSON 구조화 출력용 LLM (format=json 강제)."""
+def get_structured_llm() -> BaseChatModel:
+    """JSON 구조화 출력용 LLM."""
+    if settings.provider == "claude":
+        return ChatAnthropic(
+            model=settings.claude_model,
+            api_key=settings.anthropic_api_key,
+            temperature=settings.temperature_structured,
+        )
     return ChatOllama(
-        model=settings.model,
+        model=settings.ollama_model,
         base_url=settings.ollama_base_url,
         temperature=settings.temperature_structured,
         format="json",
