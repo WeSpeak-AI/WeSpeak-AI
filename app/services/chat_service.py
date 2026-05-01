@@ -1,6 +1,12 @@
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+import time
 
+from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+
+from app.logger import get_logger
 from app.services.llm import get_chat_llm
+
+logger = get_logger("wespeak.chat")
 
 SYSTEM_PROMPT = """You are a friendly English conversation partner for Korean language learners.
 Your role is to help users practice natural English conversation.
@@ -11,9 +17,14 @@ Guidelines:
 - Always respond in English only
 - Match the conversational tone of the user"""
 
+CONVERSATION_PROMPT_TEMPLATE = ChatPromptTemplate([
+    ("system", SYSTEM_PROMPT),
+    MessagesPlaceholder(variable_name="chat_history"),
+])
 
-def _build_messages(history: list[dict]) -> list:
-    messages = [SystemMessage(content=SYSTEM_PROMPT)]
+
+def _convert_history(history: list[dict]) -> list:
+    messages = []
     for msg in history:
         role = msg.get("role", "")
         content = msg.get("content", "")
@@ -25,7 +36,15 @@ def _build_messages(history: list[dict]) -> list:
 
 
 async def chat(history: list[dict]) -> str:
-    llm = get_chat_llm()
-    messages = _build_messages(history)
-    response = await llm.ainvoke(messages)
-    return response.content
+    logger.info("chat request - history_length=%d", len(history))
+    start = time.perf_counter()
+    try:
+        llm = get_chat_llm()
+        chatChain = CONVERSATION_PROMPT_TEMPLATE | llm
+        messages = _convert_history(history)
+        response = await chatChain.ainvoke({"chat_history": messages})
+        logger.info("chat completed - %.1fms", (time.perf_counter() - start) * 1000)
+        return response.content
+    except Exception as e:
+        logger.error("chat failed - %.1fms error=%s", (time.perf_counter() - start) * 1000, e, exc_info=True)
+        raise
