@@ -83,19 +83,19 @@ class VocaBookResult(BaseModel):
     days: list[DayResult] = Field(..., description="List of daily vocabulary content")
 
 
-_voca_retriever = None
+_voca_store = None
+_voca_embedding = None
 
 
-def get_voca_retriever():
-    global _voca_retriever
-    if _voca_retriever is None:
-        embedding = UpstageEmbeddings(model=EMBEDDING_MODEL)
-        database = PineconeVectorStore(
-            embedding=embedding,
+def get_voca_store() -> tuple[PineconeVectorStore, UpstageEmbeddings]:
+    global _voca_store, _voca_embedding
+    if _voca_store is None:
+        _voca_embedding = UpstageEmbeddings(model=EMBEDDING_MODEL)
+        _voca_store = PineconeVectorStore(
+            embedding=_voca_embedding,
             index_name=PINECONE_INDEX_NAME,
         )
-        _voca_retriever = database.as_retriever(search_kwargs={"k": 5})
-    return _voca_retriever
+    return _voca_store, _voca_embedding
 
 
 def format_docs(docs) -> str:
@@ -131,10 +131,9 @@ async def _generate_day(
     return day_result
 
 
-async def _retrieve(sem: asyncio.Semaphore, topic: str):
+async def _query_by_vector(sem: asyncio.Semaphore, store: PineconeVectorStore, vector: list):
     async with sem:
-        retriever = get_voca_retriever()
-        return await asyncio.to_thread(retriever.invoke, topic)
+        return await asyncio.to_thread(store.similarity_search_by_vector, vector, k=5)
 
 
 async def generate_voca(title: str, category: str, description: str, numberOfDays: int) -> VocaBookResult:
@@ -155,9 +154,11 @@ async def generate_voca(title: str, category: str, description: str, numberOfDay
         logger.info("topics generated - title=%s count=%d %.1fms",
                     title, len(topics), (time.perf_counter() - start) * 1000)
 
-        # Step 2: 각 topic으로 Pinecone 병렬 쿼리 (최대 MAX_CONCURRENT_RAG 동시)
+        # Step 2: topic 전체를 한 번에 batch embedding → Pinecone 병렬 쿼리
+        store, embedding = get_voca_store()
+        topic_vectors = await asyncio.to_thread(embedding.embed_documents, topics)
         rag_sem = asyncio.Semaphore(MAX_CONCURRENT_RAG)
-        doc_lists = await asyncio.gather(*[_retrieve(rag_sem, topic) for topic in topics])
+        doc_lists = await asyncio.gather(*[_query_by_vector(rag_sem, store, vec) for vec in topic_vectors])
         logger.info("rag done - title=%s %.1fms",
                     title, (time.perf_counter() - start) * 1000)
 
