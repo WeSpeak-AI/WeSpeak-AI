@@ -30,7 +30,7 @@ Category: {category}
 Description: {description}
 
 Rules:
-- Each topic must be a specific, searchable phrase (e.g. "business email expressions", "TOEIC Part 5 grammar")
+- Each topic must be a specific, searchable phrase (e.g. "Information & Resource Management")
 - Topics must be varied and cover the full scope of the vocabulary book
 - No duplicate topics""")
 ])
@@ -83,19 +83,13 @@ class VocaBookResult(BaseModel):
     days: list[DayResult] = Field(..., description="List of daily vocabulary content")
 
 
-_voca_retriever = None
-
-
 def get_voca_retriever():
-    global _voca_retriever
-    if _voca_retriever is None:
-        embedding = UpstageEmbeddings(model=EMBEDDING_MODEL)
-        database = PineconeVectorStore(
-            embedding=embedding,
-            index_name=PINECONE_INDEX_NAME,
-        )
-        _voca_retriever = database.as_retriever(search_kwargs={"k": 5})
-    return _voca_retriever
+    embedding = UpstageEmbeddings(model=EMBEDDING_MODEL)
+    database = PineconeVectorStore(
+        embedding=embedding,
+        index_name=PINECONE_INDEX_NAME,
+    )
+    return database.as_retriever(search_kwargs={"k": 5})
 
 
 def format_docs(docs) -> str:
