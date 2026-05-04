@@ -83,13 +83,19 @@ class VocaBookResult(BaseModel):
     days: list[DayResult] = Field(..., description="List of daily vocabulary content")
 
 
+_voca_retriever = None
+
+
 def get_voca_retriever():
-    embedding = UpstageEmbeddings(model=EMBEDDING_MODEL)
-    database = PineconeVectorStore(
-        embedding=embedding,
-        index_name=PINECONE_INDEX_NAME,
-    )
-    return database.as_retriever(search_kwargs={"k": 5})
+    global _voca_retriever
+    if _voca_retriever is None:
+        embedding = UpstageEmbeddings(model=EMBEDDING_MODEL)
+        database = PineconeVectorStore(
+            embedding=embedding,
+            index_name=PINECONE_INDEX_NAME,
+        )
+        _voca_retriever = database.as_retriever(search_kwargs={"k": 5})
+    return _voca_retriever
 
 
 def format_docs(docs) -> str:
@@ -125,9 +131,10 @@ async def _generate_day(
     return day_result
 
 
-async def _retrieve(retriever, sem: asyncio.Semaphore, topic: str):
+async def _retrieve(sem: asyncio.Semaphore, topic: str):
     async with sem:
-        return await retriever.ainvoke(topic)
+        retriever = get_voca_retriever()
+        return await asyncio.to_thread(retriever.invoke, topic)
 
 
 async def generate_voca(title: str, category: str, description: str, numberOfDays: int) -> VocaBookResult:
@@ -149,9 +156,8 @@ async def generate_voca(title: str, category: str, description: str, numberOfDay
                     title, len(topics), (time.perf_counter() - start) * 1000)
 
         # Step 2: 각 topic으로 Pinecone 병렬 쿼리 (최대 MAX_CONCURRENT_RAG 동시)
-        retriever = get_voca_retriever()
         rag_sem = asyncio.Semaphore(MAX_CONCURRENT_RAG)
-        doc_lists = await asyncio.gather(*[_retrieve(retriever, rag_sem, topic) for topic in topics])
+        doc_lists = await asyncio.gather(*[_retrieve(rag_sem, topic) for topic in topics])
         logger.info("rag done - title=%s %.1fms",
                     title, (time.perf_counter() - start) * 1000)
 
