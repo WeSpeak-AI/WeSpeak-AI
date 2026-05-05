@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Read(//mnt/c/Users/user/github/AI/**)",
-      "Read(//mnt/c/Users/user/github/**)"
+      "Read(//mnt/c/Users/user/github/**)",
+      "Bash(pip show *)",
+      "Bash(/mnt/c/Users/user/github/WeSpeak-AI/venv/bin/pip show *)"
     ]
   }
 }

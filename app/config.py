@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     # "ollama" 또는 "claude"
-    provider: str = "claude"
+    provider: str = "ollama"
 
     # Ollama 설정
     ollama_base_url: str = "http://localhost:11434"

@@ -72,6 +72,22 @@ def ingest(file_paths: list[Path]):
 
     print(f"\n총 {len(all_docs)}개 청크를 Pinecone '{PINECONE_INDEX_NAME}'에 삽입 중...")
 
+    from pinecone import Pinecone, ServerlessSpec
+    from pinecone.exceptions import NotFoundException
+    pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+    existing = [idx.name for idx in pc.list_indexes()]
+    if PINECONE_INDEX_NAME in existing:
+        pc.Index(PINECONE_INDEX_NAME).delete(delete_all=True)
+        print(f"  → 기존 데이터 삭제 완료")
+    else:
+        pc.create_index(
+            name=PINECONE_INDEX_NAME,
+            dimension=4096,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        )
+        print(f"  → 인덱스 생성 완료")
+
     embedding = UpstageEmbeddings(model=EMBEDDING_MODEL)
     PineconeVectorStore.from_documents(
         documents=all_docs,

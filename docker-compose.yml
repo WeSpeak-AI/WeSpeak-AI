@@ -12,6 +12,11 @@ services:
       - "host-gateway:host-gateway"
     volumes:
       - whisper-models:/root/.cache/huggingface
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     deploy:
       resources:
         reservations:
