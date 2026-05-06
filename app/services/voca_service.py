@@ -44,7 +44,7 @@ For each word provide:
 - term: the English word or phrase
 - meaning: clear concise definition in Korean (한국어로 작성)
 - phonetic: IPA transcription (e.g. /ˈwɜːrd/)
-- example: one natural example sentence using the word (length must be less than 100)
+- example: one natural example sentence using the word (max 100 characters)
 - imageUrl: always empty string ""
 """
 
@@ -69,7 +69,7 @@ class WordResult(BaseModel):
     term: str = Field(..., description="The English word or phrase")
     meaning: str = Field(..., description="Clear concise definition in Korean")
     phonetic: str = Field(..., description="IPA phonetic transcription, e.g. /ˈwɜːrd/")
-    example: str = Field(..., description="One natural example sentence using the word (length must be less than 100)")
+    example: str = Field(..., description="One natural example sentence using the word (max 100 characters)")
     imageUrl: str = Field(default="", description="Always leave as empty string")
 
 
