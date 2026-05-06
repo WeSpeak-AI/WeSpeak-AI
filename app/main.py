@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 
 from app.logger import get_logger, setup_logging
-from app.routers import chat, correct, feedback, search, topic, voca
+from app.routers import chat, correct, feedback, ingest, search, topic, voca
 from app.services.stt_service import get_model
 
 setup_logging()
@@ -40,6 +40,7 @@ app.include_router(search.router)
 app.include_router(correct.router)
 app.include_router(topic.router)
 app.include_router(voca.router)
+app.include_router(ingest.router)
 
 
 @app.get("/health")
