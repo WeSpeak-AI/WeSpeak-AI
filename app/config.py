@@ -3,11 +3,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     # "ollama" 또는 "claude"
-    provider: str = "claude"
+    provider: str = "ollam"
 
     # Ollama 설정
     ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "llama3.2"
+    ollama_model: str = "qwen2.5:7b"
 
     # Claude 설정
     anthropic_api_key: str = ""
