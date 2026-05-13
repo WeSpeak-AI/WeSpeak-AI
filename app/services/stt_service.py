@@ -45,6 +45,9 @@ def _transcribe_sync(audio_bytes: bytes) -> str:
             vad_filter=True,
         )
         text = " ".join(segment.text.strip() for segment in segments).strip()
+    except Exception as e:
+        logger.error("transcribe failed - elapsed=%.1fms error=%s", (time.perf_counter() - start) * 1000, e, exc_info=True)
+        raise
     finally:
         os.unlink(tmp_path)
 
