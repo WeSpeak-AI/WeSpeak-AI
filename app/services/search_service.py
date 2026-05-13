@@ -10,12 +10,12 @@ from app.services.llm import get_structured_llm
 logger = get_logger("wespeak.search")
 
 SYSTEM_PROMPT = """You are an English dictionary. Given a word or phrase, return ONLY a JSON object with these exact fields:
-{
+{{
   "term": "<the word or phrase as given>",
-  "meaning": "<clear concise definition in English>",
+  "meaning": "<clear concise definition in Korean, e.g. 수정하다>",
   "phonetic": "<IPA phonetic transcription, e.g. /ˈwɜːrd/>",
   "example": "<one natural example sentence using the word>"
-}
+}}
 Respond with ONLY the JSON object. No explanation, no markdown, no extra text."""
 
 SEARCH_PROMPT_TEMPLATE = ChatPromptTemplate([
