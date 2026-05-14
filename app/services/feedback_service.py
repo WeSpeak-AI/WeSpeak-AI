@@ -15,9 +15,8 @@ You will receive:
 Your job is to evaluate the student's summary and provide constructive feedback.
 Guidelines:
 - Give feedback in 3-4 sentences
-- Mention what they got right (accuracy of key points)
-- Point out any important missing details
-- Comment on language quality if notable errors exist
+- Focus on whether the student understood the overall message and main theme of the passage
+- Evaluate how well the student captured the cause-and-effect relationships and the flow of ideas
 - Be encouraging and specific
 - Respond in English only"""
 
@@ -28,7 +27,13 @@ The Amazon rainforest, often called the 'lungs of the Earth', produces about 20%
 
 Student's summary:
 The Amazon is a very big forest. It makes oxygen. Many animals live there but some people cut trees so it is dangerous for animals."""),
-    ("ai", "You got the main ideas right — the Amazon produces oxygen and deforestation threatens wildlife. However, you missed some key details: the forest spans nine countries, covers 5.5 million square kilometers, and about 20% has already been lost. Try to include specific figures when the passage gives them. Your sentences are clear, but using connectors like 'as a result' or 'however' would make your summary flow more naturally."),
+    ("ai", "Great job grasping the core message — you understood that the Amazon plays a vital role in producing oxygen and that human activity is putting it at risk. Your summary shows a solid understanding of the cause-and-effect relationship between deforestation and the threat to wildlife. To make your summary even stronger, try to connect these ideas more explicitly, for example by explaining why deforestation happens and what that means for the forest's role on Earth. Keep it up — you're capturing the big picture well!"),
+    ("human", """Book passage:
+The Industrial Revolution, which began in Britain in the late 18th century, transformed societies from agrarian economies to manufacturing-based ones. Steam-powered machines replaced manual labor, enabling mass production in factories. While this created economic growth and urbanization, it also led to poor working conditions, child labor, and significant environmental pollution.
+
+Student's summary:
+I think it was about some machines and people working. There were factories. I'm not sure what the main point was."""),
+    ("ai", "It seems like this passage was a bit tricky — don't worry, let me help you get the big picture. The passage is about how the invention of steam-powered machines in the 1700s completely changed the way people lived and worked: instead of farming, people moved to cities and worked in factories, which made economies grow but also created serious problems like harsh working conditions and pollution. Next time, try to ask yourself 'why did this happen and what changed because of it?' — that will help you find the main idea. You're on the right track by picking up on the factories and machines!"),
     ("human", """Book passage:
 {book_content}
 
