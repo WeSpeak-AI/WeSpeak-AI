@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     temperature_chat: float = 0.7
     temperature_structured: float = 0.1
 
+    # STT 제공자: "local" (faster-whisper) 또는 "openai"
+    stt_provider: str = "local"
+
     # faster-whisper 설정
     # 모델 크기: tiny / base / small / medium / large-v3
     whisper_model: str = "medium"
@@ -25,6 +28,9 @@ class Settings(BaseSettings):
     whisper_compute_type: str = "int8"
     # 전사 언어 (영어 고정)
     whisper_language: str = "en"
+
+    # OpenAI Whisper API 설정
+    openai_api_key: str = ""
 
 
 

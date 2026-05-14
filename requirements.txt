@@ -21,3 +21,4 @@ python-dotenv>=1.0.1
 nvidia-cublas-cu12
 nvidia-cudnn-cu12
 edge-tts
+openai>=1.0.0
