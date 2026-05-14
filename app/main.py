@@ -42,7 +42,6 @@ app.include_router(topic.router)
 app.include_router(voca.router)
 app.include_router(ingest.router)
 
-
 @app.get("/health")
 async def health():
     return {"status": "ok"}

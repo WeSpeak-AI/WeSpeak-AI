@@ -11,6 +11,7 @@ services:
     extra_hosts:
       - "host-gateway:host-gateway"
     volumes:
+      # Whisper 모델 캐시 — 재시작 시 재다운로드 방지
       - whisper-models:/root/.cache/huggingface
     logging:
       driver: json-file
@@ -28,3 +29,4 @@ services:
 
 volumes:
   whisper-models:
+

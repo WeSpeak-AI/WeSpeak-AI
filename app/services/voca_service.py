@@ -67,9 +67,9 @@ class TopicListResult(BaseModel):
 
 class WordResult(BaseModel):
     term: str = Field(..., description="The English word or phrase")
-    meaning: str = Field(..., description="Clear concise definition in Korean")
+    meaning: str = Field(..., description="Clear concise definition in English")
     phonetic: str = Field(..., description="IPA phonetic transcription, e.g. /ˈwɜːrd/")
-    example: str = Field(..., description="One natural example sentence using the word (max 100 characters)")
+    example: str = Field(..., description="One natural example sentence using the word")
     imageUrl: str = Field(default="", description="Always leave as empty string")
 
 
