@@ -1,9 +1,6 @@
 import asyncio
-import base64
 import os
 import time
-
-import httpx
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_pinecone import PineconeVectorStore
@@ -208,17 +205,13 @@ async def generate_word_images(words: list) -> VocaWordImageResult:
         async with sem:
             try:
                 response = await client.images.generate(
-                    model="dall-e-3",
+                    model="gpt-image-1",
                     prompt=IMAGE_PROMPT_TEMPLATE.format(term=word_item.term),
                     size="1024x1024",
                     quality="standard",
                     n=1,
                 )
-                image_url = response.data[0].url
-                async with httpx.AsyncClient() as http_client:
-                    img_response = await http_client.get(image_url, timeout=30)
-                    image_data = base64.b64encode(img_response.content).decode("utf-8")
-                return ImageResult(wordId=word_item.wordId, imageData=image_data)
+                return ImageResult(wordId=word_item.wordId, imageData=response.data[0].b64_json)
             except Exception as e:
                 logger.error("image failed - wordId=%d term=%s error=%s", word_item.wordId, word_item.term, e)
                 return ImageResult(wordId=word_item.wordId, imageData="")
