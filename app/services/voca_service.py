@@ -208,7 +208,7 @@ async def generate_word_images(words: list) -> VocaWordImageResult:
                     model="gpt-image-1",
                     prompt=IMAGE_PROMPT_TEMPLATE.format(term=word_item.term),
                     size="1024x1024",
-                    quality="standard",
+                    quality="low",
                     n=1,
                 )
                 return ImageResult(wordId=word_item.wordId, imageData=response.data[0].b64_json)
