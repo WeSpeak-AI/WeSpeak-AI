@@ -1,6 +1,7 @@
 from langchain_anthropic import ChatAnthropic
 from langchain_core.language_models import BaseChatModel
 from langchain_ollama import ChatOllama
+from openai import AsyncOpenAI
 
 from app.config import settings
 
@@ -19,6 +20,10 @@ def get_chat_llm() -> BaseChatModel:
     )
 
 
+def get_image_client() -> AsyncOpenAI:
+    return AsyncOpenAI(api_key=settings.openai_api_key)
+
+
 def get_structured_llm() -> BaseChatModel:
     """JSON 구조화 출력용 LLM."""
     if settings.provider == "claude":
@@ -33,3 +38,4 @@ def get_structured_llm() -> BaseChatModel:
         temperature=settings.temperature_structured,
         format="json",
     )
+
