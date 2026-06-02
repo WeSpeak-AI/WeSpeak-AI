@@ -207,7 +207,7 @@ async def generate_word_images(words: list) -> VocaWordImageResult:
                 response = await client.images.generate(
                     model="dall-e-3",
                     prompt=IMAGE_PROMPT_TEMPLATE.format(term=word_item.term),
-                    size="256x256",
+                    size="1024x1024",
                     quality="standard",
                     n=1,
                     response_format="b64_json",
