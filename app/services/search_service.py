@@ -27,6 +27,10 @@ Respond with ONLY the JSON object. No explanation, no markdown, no extra text.""
 
 SEARCH_PROMPT_TEMPLATE = ChatPromptTemplate([
     ("system", SYSTEM_PROMPT),
+    ("human", "Define this word: eloquent"),
+    ("ai", '{{"term": "eloquent", "meaning": "말을 유창하게 잘 하는, 표현이 풍부한", "phonetic": "/ˈeləkwənt/", "example": "She gave an eloquent speech at the conference."}}'),
+    ("human", "Define this word: 수정하다"),
+    ("ai", '{{"term": "modify", "meaning": "수정하다, 변경하다", "phonetic": "/ˈmɒdɪfaɪ/", "example": "Please modify your report before submitting it."}}'),
     ("human", "Define this word: {query}")
 ])
 
