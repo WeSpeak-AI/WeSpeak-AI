@@ -8,7 +8,7 @@ from langchain_upstage import UpstageEmbeddings
 from pydantic import BaseModel, Field
 
 from app.logger import get_logger
-from app.services.llm import get_structured_llm, get_image_client
+from app.services.llm import get_claude_structured_llm, get_image_client
 
 logger = get_logger("wespeak.voca")
 
@@ -140,7 +140,7 @@ async def generate_voca(title: str, category: str, description: str, numberOfDay
     logger.info("voca request - title=%s numberOfDays=%d", title, numberOfDays)
     start = time.perf_counter()
     try:
-        llm = get_structured_llm()
+        llm = get_claude_structured_llm()
 
         # Step 1: numberOfDays개의 dayTopic 확정
         topic_chain = TOPIC_PROMPT_TEMPLATE | llm.with_structured_output(TopicListResult)
