@@ -5,7 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel
 
 from app.logger import get_logger
-from app.services.llm import get_structured_llm
+from app.services.llm import routed_structured_llm
 
 logger = get_logger("wespeak.correction")
 
@@ -56,27 +56,24 @@ async def correct_essay(content: str) -> str:
     logger.info("correction request - content_length=%d", len(content))
     start = time.perf_counter()
     try:
-        llm = get_structured_llm()
-        structured_llm = llm.with_structured_output(CorrectionResult)
-        writeChain = WRITE_PROMPT_TEMPLATE | structured_llm
-        result = await writeChain.ainvoke({"content": content})
-        logger.info("correction completed - %.1fms", (time.perf_counter() - start) * 1000)
-        if isinstance(result, CorrectionResult):
-            return result.model_dump_json()
-        return CorrectionResult(**result).model_dump_json()
-    except Exception as e:
-        logger.warning("correction structured output failed, retrying with raw LLM - error=%s", e)
-        try:
-            raw_llm = get_structured_llm()
-            response = await (WRITE_PROMPT_TEMPLATE | raw_llm).ainvoke({"content": content})
-            raw = response.content.strip()
-            if raw.startswith("```"):
-                raw = raw.split("```")[1]
-                if raw.startswith("json"):
-                    raw = raw[4:]
-            data = json.loads(raw)
-            logger.info("correction fallback completed - %.1fms", (time.perf_counter() - start) * 1000)
-            return CorrectionResult(**data).model_dump_json()
-        except Exception as e2:
-            logger.error("correction failed - %.1fms error=%s", (time.perf_counter() - start) * 1000, e2, exc_info=True)
-            raise
+        async with routed_structured_llm() as llm:
+            try:
+                result = await (WRITE_PROMPT_TEMPLATE | llm.with_structured_output(CorrectionResult)).ainvoke({"content": content})
+                logger.info("correction completed - %.1fms", (time.perf_counter() - start) * 1000)
+                if isinstance(result, CorrectionResult):
+                    return result.model_dump_json()
+                return CorrectionResult(**result).model_dump_json()
+            except Exception as e:
+                logger.warning("correction structured output failed, retrying with raw LLM - error=%s", e)
+                response = await (WRITE_PROMPT_TEMPLATE | llm).ainvoke({"content": content})
+                raw = response.content.strip()
+                if raw.startswith("```"):
+                    raw = raw.split("```")[1]
+                    if raw.startswith("json"):
+                        raw = raw[4:]
+                data = json.loads(raw)
+                logger.info("correction fallback completed - %.1fms", (time.perf_counter() - start) * 1000)
+                return CorrectionResult(**data).model_dump_json()
+    except Exception as e2:
+        logger.error("correction failed - %.1fms error=%s", (time.perf_counter() - start) * 1000, e2, exc_info=True)
+        raise
