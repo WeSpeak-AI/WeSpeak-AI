@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     # "ollama" 또는 "claude"
     provider: str = "ollama"
-
+    image_provider: str = "openai"
     # Ollama 설정
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "qwen2.5:7b"
