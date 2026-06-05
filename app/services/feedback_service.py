@@ -3,7 +3,7 @@ import time
 from langchain_core.prompts import ChatPromptTemplate
 
 from app.logger import get_logger
-from app.services.llm import get_chat_llm
+from app.services.llm import routed_chat_llm
 
 logger = get_logger("wespeak.feedback")
 
@@ -68,10 +68,10 @@ async def get_feedback(messages: list[dict]) -> str:
     logger.info("feedback request")
     start = time.perf_counter()
     try:
-        llm = get_chat_llm()
-        bookChain = BOOK_PROMPT_TEMPLATE | llm
-        user_input = _extract_contents(messages)
-        response = await bookChain.ainvoke(user_input)
+        async with routed_chat_llm() as llm:
+            bookChain = BOOK_PROMPT_TEMPLATE | llm
+            user_input = _extract_contents(messages)
+            response = await bookChain.ainvoke(user_input)
         logger.info("feedback completed - %.1fms", (time.perf_counter() - start) * 1000)
         return response.content
     except Exception as e:
