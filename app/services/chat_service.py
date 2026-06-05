@@ -4,7 +4,7 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 from app.logger import get_logger
-from app.services.llm import get_chat_llm
+from app.services.llm import routed_chat_llm
 
 logger = get_logger("wespeak.chat")
 
@@ -39,10 +39,10 @@ async def chat(history: list[dict]) -> str:
     logger.info("chat request - history_length=%d", len(history))
     start = time.perf_counter()
     try:
-        llm = get_chat_llm()
-        chatChain = CONVERSATION_PROMPT_TEMPLATE | llm
-        messages = _convert_history(history)
-        response = await chatChain.ainvoke({"chat_history": messages})
+        async with routed_chat_llm() as llm:
+            chatChain = CONVERSATION_PROMPT_TEMPLATE | llm
+            messages = _convert_history(history)
+            response = await chatChain.ainvoke({"chat_history": messages})
         logger.info("chat completed - %.1fms", (time.perf_counter() - start) * 1000)
         return response.content
     except Exception as e:
