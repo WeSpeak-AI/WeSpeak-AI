@@ -3,7 +3,7 @@ import time
 from langchain_core.prompts import ChatPromptTemplate
 
 from app.logger import get_logger
-from app.services.llm import get_chat_llm
+from app.services.llm import routed_chat_llm
 
 logger = get_logger("wespeak.topic")
 
@@ -59,9 +59,9 @@ async def get_topic(title: str, content: str, difficulty: str) -> str:
     logger.info("topic request - title=%s difficulty=%s", title, difficulty)
     start = time.perf_counter()
     try:
-        llm = get_chat_llm()
-        topicChain = TOPIC_PROMPT_TEMPLATE | llm
-        response = await topicChain.ainvoke({"title": title, "content": content, "difficulty": difficulty})
+        async with routed_chat_llm() as llm:
+            topicChain = TOPIC_PROMPT_TEMPLATE | llm
+            response = await topicChain.ainvoke({"title": title, "content": content, "difficulty": difficulty})
         logger.info("topic completed - title=%s %.1fms", title, (time.perf_counter() - start) * 1000)
         return response.content
     except Exception as e:
