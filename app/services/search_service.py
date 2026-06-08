@@ -13,7 +13,7 @@ SYSTEM_PROMPT = """You are an English-Korean dictionary. Given a word or phrase,
 {{
   "term": "<always the English word or phrase, e.g. modify>",
   "meaning": "<clear concise Korean definition, e.g. 수정하다>",
-  "phonetic": "<IPA phonetic transcription of the English term, e.g. /ˈmɒdɪfaɪ/>",
+  "phonetic": "<IPA phonetic transcription of the English term, e.g. /ˈmɑːdɪfaɪ/>",
   "example": "<one natural English example sentence using the word>"
 }}
 
@@ -30,7 +30,27 @@ SEARCH_PROMPT_TEMPLATE = ChatPromptTemplate([
     ("human", "Define this word: eloquent"),
     ("ai", '{{"term": "eloquent", "meaning": "말을 유창하게 잘 하는, 표현이 풍부한", "phonetic": "/ˈeləkwənt/", "example": "She gave an eloquent speech at the conference."}}'),
     ("human", "Define this word: 수정하다"),
-    ("ai", '{{"term": "modify", "meaning": "수정하다, 변경하다", "phonetic": "/ˈmɒdɪfaɪ/", "example": "Please modify your report before submitting it."}}'),
+    ("ai", '{{"term": "modify", "meaning": "수정하다, 변경하다", "phonetic": "/ˈmɑːdɪfaɪ/", "example": "Please modify your report before submitting it."}}'),
+    ("human", "Define this word: ambiguous"),
+    ("ai", '{{"term": "ambiguous", "meaning": "애매한, 모호한", "phonetic": "/æmˈbɪɡjuəs/", "example": "The instructions were ambiguous, so we asked for clarification."}}'),
+    ("human", "Define this word: resilient"),
+    ("ai", '{{"term": "resilient", "meaning": "회복력이 있는, 탄력적인", "phonetic": "/rɪˈzɪliənt/", "example": "She is resilient enough to bounce back from any setback."}}'),
+    ("human", "Define this word: diligent"),
+    ("ai", '{{"term": "diligent", "meaning": "부지런한, 성실한", "phonetic": "/ˈdɪlɪdʒənt/", "example": "She is a diligent student who always finishes her homework on time."}}'),
+    ("human", "Define this word: negotiate"),
+    ("ai", '{{"term": "negotiate", "meaning": "협상하다, 교섭하다", "phonetic": "/nɪˈɡoʊʃieɪt/", "example": "The two companies agreed to negotiate the terms of the contract."}}'),
+    ("human", "Define this word: persist"),
+    ("ai", '{{"term": "persist", "meaning": "지속하다, 끈기 있게 계속하다", "phonetic": "/pərˈsɪst/", "example": "If you persist in your efforts, you will eventually succeed."}}'),
+    ("human", "Define this word: 포기하다"),
+    ("ai", '{{"term": "give up", "meaning": "포기하다, 그만두다", "phonetic": "/ɡɪv ʌp/", "example": "Don\'t give up even when things get difficult."}}'),
+    ("human", "Define this word: 긴장하다"),
+    ("ai", '{{"term": "nervous", "meaning": "긴장한, 불안한", "phonetic": "/ˈnɜːrvəs/", "example": "He felt nervous before his first job interview."}}'),
+    ("human", "Define this word: 겸손한"),
+    ("ai", '{{"term": "humble", "meaning": "겸손한, 자만하지 않는", "phonetic": "/ˈhʌmbəl/", "example": "Despite his success, he remained humble and kind."}}'),
+    ("human", "Define this word: 설명하다"),
+    ("ai", '{{"term": "explain", "meaning": "설명하다, 해설하다", "phonetic": "/ɪkˈspleɪn/", "example": "Can you explain how this machine works?"}}'),
+    ("human", "Define this word: 해결하다"),
+    ("ai", '{{"term": "resolve", "meaning": "해결하다, 결심하다", "phonetic": "/rɪˈzɑːlv/", "example": "They worked together to resolve the conflict peacefully."}}'),
     ("human", "Define this word: {query}")
 ])
 
