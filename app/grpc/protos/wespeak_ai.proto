@@ -1,0 +1,74 @@
+// AI 서버(WeSpeak-AI) 연동 gRPC 계약. 이 파일은 WeSpeak-Back 저장소의
+// core/core-grpc/src/main/proto/wespeak_ai.proto와 동일하게 유지되어야 합니다.
+
+syntax = "proto3";
+
+package wespeak.ai.v1;
+
+option java_package = "backend.core.grpc.ai.v1";
+option java_multiple_files = true;
+
+// ─────────────────────────────────────────────────────────────
+// Chat — AiClient.chat 대응
+// ─────────────────────────────────────────────────────────────
+
+service ChatService {
+  // client-streaming(오디오 청크 업로드) + server-streaming(응답 청크) = bidirectional
+  rpc Chat(stream ChatUploadChunk) returns (stream ChatChunk);
+}
+
+message ChatUploadChunk {
+  oneof payload {
+    ChatMetadata metadata = 1;   // 최초 1회
+    bytes audio_chunk = 2;       // 이후 반복
+  }
+}
+
+message ChatMetadata {
+  string history_json = 1;       // 기존 REST의 multipart "history" 폼 필드와 동일한 JSON
+}
+
+message ChatChunk {
+  oneof payload {
+    string user_text_final = 1;  // STT 완료 시 1회 (배치 STT라 한 번에 도착)
+    string ai_text_delta = 2;    // LLM 스트리밍 토큰, 반복
+    // 3 = 예전 audio_chunk(TTS). AI 서버 TTS를 쓰지 않고 프론트 내장 TTS(Speech.speak)로
+    // 대체하기로 결정하며 제거함. 재사용하지 않도록 필드 번호는 비워둔다.
+    StreamError stream_error = 4; // 오류 발생 시
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Feedback — ReadingServiceImpl.getFeedback 대응
+// ─────────────────────────────────────────────────────────────
+
+service FeedbackService {
+  rpc Feedback(stream FeedbackUploadChunk) returns (stream FeedbackChunk);
+}
+
+message FeedbackUploadChunk {
+  oneof payload {
+    FeedbackMetadata metadata = 1; // 최초 1회
+    bytes audio_chunk = 2;         // 이후 반복
+  }
+}
+
+message FeedbackMetadata {
+  string book_content = 1;         // 기존 REST의 multipart "book_content" 폼 필드와 동일
+}
+
+message FeedbackChunk {
+  oneof payload {
+    string user_text_final = 1;
+    string feedback_text_delta = 2; // 오디오 없음 (feedback_service.py에 TTS 미적용)
+    StreamError stream_error = 3;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// 공통
+// ─────────────────────────────────────────────────────────────
+
+message StreamError {
+  string message = 1;
+}
