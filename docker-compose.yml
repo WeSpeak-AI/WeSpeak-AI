@@ -4,6 +4,7 @@ services:
     container_name: wespeak-ai
     ports:
       - "8000:8000"
+      - "50051:50051"  # gRPC (spec 004: ChatService/FeedbackService)
     env_file:
       - .env
     environment:
