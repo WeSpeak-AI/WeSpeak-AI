@@ -22,3 +22,7 @@ nvidia-cublas-cu12
 nvidia-cudnn-cu12
 edge-tts
 openai>=1.0.0
+grpcio>=1.68.1
+grpcio-tools>=1.68.1
+pytest>=8.0.0
+pytest-asyncio>=0.24.0
