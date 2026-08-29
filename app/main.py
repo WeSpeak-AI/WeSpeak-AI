@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 
+from app.grpc.server import create_grpc_server
 from app.logger import get_logger, setup_logging
 from app.routers import chat, correct, feedback, ingest, search, topic, voca
 from app.services.stt_service import get_model
@@ -14,7 +15,9 @@ logger = get_logger("wespeak.http")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     get_model()
+    grpc_server = await create_grpc_server()
     yield
+    await grpc_server.stop(grace=5)
 
 
 app = FastAPI(
