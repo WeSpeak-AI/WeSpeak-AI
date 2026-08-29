@@ -1,4 +1,5 @@
 import time
+from typing import AsyncIterator
 
 from langchain_core.prompts import ChatPromptTemplate
 
@@ -192,16 +193,24 @@ def _extract_contents(raw_messages: list[dict]) -> dict:
             "user_summary": user_summary}
 
 
-async def get_feedback(messages: list[dict]) -> str:
-    logger.info("feedback request")
+async def get_feedback_stream(messages: list[dict]) -> AsyncIterator[str]:
+    """토큰 단위 스트리밍. gRPC FeedbackService(spec 004)에서 사용."""
+    logger.info("feedback request (stream)")
     start = time.perf_counter()
     try:
         async with routed_chat_llm() as llm:
             bookChain = BOOK_PROMPT_TEMPLATE | llm
             user_input = _extract_contents(messages)
-            response = await bookChain.ainvoke(user_input)
-        logger.info("feedback completed - %.1fms", (time.perf_counter() - start) * 1000)
-        return response.content
+            async for chunk in bookChain.astream(user_input):
+                if chunk.content:
+                    yield chunk.content
+        logger.info("feedback completed (stream) - %.1fms", (time.perf_counter() - start) * 1000)
     except Exception as e:
-        logger.error("feedback failed - %.1fms error=%s", (time.perf_counter() - start) * 1000, e, exc_info=True)
+        logger.error("feedback failed (stream) - %.1fms error=%s", (time.perf_counter() - start) * 1000, e, exc_info=True)
         raise
+
+
+async def get_feedback(messages: list[dict]) -> str:
+    """기존 REST(/feedback)용 — get_feedback_stream()의 토큰을 모아 완성된 문자열로 반환한다.
+    REST 응답 동작은 이전(ainvoke 기반)과 동일하게 유지된다."""
+    return "".join([token async for token in get_feedback_stream(messages)])
