@@ -173,6 +173,15 @@ Please provide feedback on the student's summary.""")
 ])
 
 
+# 프론트가 이 텍스트를 그대로 TTS로 읽어주므로(expo-speech) 영어로 고정한다.
+# SYSTEM_PROMPT의 "3-4 sentences / encouraging / English only" 가이드와 톤을 맞췄다.
+EMPTY_INPUT_MESSAGE = (
+    "I couldn't hear anything in your recording. "
+    "Could you try again and tell me what you understood from the passage? "
+    "Even one or two sentences is a great start."
+)
+
+
 def _extract_contents(raw_messages: list[dict]) -> dict:
     """
     백엔드가 보내는 메시지 형식:
@@ -197,10 +206,22 @@ async def get_feedback_stream(messages: list[dict]) -> AsyncIterator[str]:
     """토큰 단위 스트리밍. gRPC FeedbackService(spec 004)에서 사용."""
     logger.info("feedback request (stream)")
     start = time.perf_counter()
+    user_input = _extract_contents(messages)
+
+    # 사용자가 아무 말도 하지 않으면 stt_service.transcribe()가 빈 문자열을 반환한다
+    # (vad_filter=True가 무음 구간을 전부 제거 → 세그먼트 0개). 그대로 프롬프트에 넣으면
+    # "Student's summary:" 뒤가 비어버리는데, BOOK_PROMPT_TEMPLATE의 few-shot 23개는 전부
+    # 학생이 실제 답변을 제출한 경우뿐이라(빈 답변 예시 0개, 되묻는 예시 0개) 모델이
+    # "요약을 제출했다"고 전제하고 칭찬해버린다. LLM에 넘기기 전에 차단한다.
+    # LLM 동시성 슬롯을 잡기 전에 검사해야 슬롯도 낭비하지 않는다.
+    if not user_input["user_summary"].strip():
+        logger.info("feedback skipped - empty transcript")
+        yield EMPTY_INPUT_MESSAGE
+        return
+
     try:
         async with routed_chat_llm() as llm:
             bookChain = BOOK_PROMPT_TEMPLATE | llm
-            user_input = _extract_contents(messages)
             async for chunk in bookChain.astream(user_input):
                 if chunk.content:
                     yield chunk.content
