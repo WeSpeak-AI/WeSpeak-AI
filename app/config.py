@@ -29,8 +29,9 @@ class Settings(BaseSettings):
     # 전사 언어 (영어 고정)
     whisper_language: str = "en"
 
-    # OpenAI Whisper API 설정
+    # OpenAI STT 설정 — stt_provider="local"이어도 로컬 whisper가 사용 중이면 이 모델로 넘긴다(키가 있을 때)
     openai_api_key: str = ""
+    openai_stt_model: str = "gpt-4o-mini-transcribe"
 
 
 
